@@ -1,4 +1,6 @@
-# Database Schema Proposal (Step 5)
+# Database Schema
+
+This schema is implemented in `backend/app/store.py`.
 
 ## Goal
 
@@ -10,7 +12,7 @@ Store one Kanban board per user in SQLite using a single JSON blob for MVP simpl
 - It matches current app shape: one board per user.
 - It keeps migration and backend logic small for MVP.
 
-## Proposed Tables
+## Tables
 
 ### users
 
@@ -93,10 +95,10 @@ A migration can read each `board_json` row and fan out records.
 - Login is currently frontend-only gate (by design in Step 4).
 - Backend still stores board by user identity abstraction so backend auth can replace frontend gate in later steps.
 
-## Step 5 sign-off checklist
+## Sign-off checklist
 
 - [x] SQLite schema defined.
 - [x] One board JSON blob per user enforced.
 - [x] DB creation/init behavior documented.
 - [x] Denormalized MVP tradeoff documented.
-- [ ] User sign-off received before Step 6 implementation.
+- [x] User sign-off received and schema implemented in `backend/app/store.py`.

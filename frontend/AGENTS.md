@@ -42,7 +42,9 @@ This document describes the current frontend implementation in `frontend/`.
 
 ## Component Map
 
-- `AuthGate.tsx`: login gate and logout action.
+- `AuthGate.tsx`: login gate and logout action. Auth state itself lives in
+  `src/lib/auth.ts` and is read via `useSyncExternalStore`, which keeps the
+  static-export prerender and client hydration consistent.
 - `KanbanBoard.tsx`: board state, DnD, persistence calls, and AI sidebar integration.
 - `KanbanColumn.tsx`: column rendering, stage color styling, rename/add controls.
 - `KanbanCard.tsx`: card display and icon delete action.

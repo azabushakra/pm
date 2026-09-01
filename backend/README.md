@@ -1,10 +1,13 @@
-# Backend (Step 3)
+# Backend
 
 ## Run
 
+`uv` is invoked as `python3 -m uv` because it is installed as a Python package
+rather than a standalone binary on PATH.
+
 ```bash
-uv sync --dev
-uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+python3 -m uv sync --dev
+python3 -m uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 Before running backend for UI serving, build the frontend export:
@@ -20,7 +23,7 @@ Then backend serves the built frontend at `/`.
 ## Test
 
 ```bash
-uv run pytest
+python3 -m uv run pytest
 ```
 
 ## Endpoints
@@ -37,6 +40,8 @@ uv run pytest
 
 - SQLite database is created automatically if missing.
 - Default database path: `backend/data/pm.db`.
+- Set `PM_DB_PATH` to use a different database file. The Playwright e2e suite
+  uses this to run against `backend/data/e2e.db` instead of the dev database.
 - Schema includes `users` and `boards` tables.
 - MVP stores one board JSON blob per user.
 

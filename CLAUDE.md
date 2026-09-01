@@ -10,11 +10,13 @@ A Project Management MVP: single-user Kanban board with an AI chat sidebar that 
 
 ### Backend (`backend/`)
 
+`uv` is installed as a Python package, not a binary on PATH, so locally it must be invoked as `python3 -m uv`. Bare `uv` works only inside the Docker image.
+
 ```bash
-uv sync --dev
-uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload   # dev server
-uv run pytest                                                      # all tests
-uv run pytest tests/test_main.py::test_name                        # single test
+python3 -m uv sync --dev
+python3 -m uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload   # dev server
+python3 -m uv run pytest                                                      # all tests
+python3 -m uv run pytest tests/test_main.py::test_name                        # single test
 ```
 
 ### Frontend (`frontend/`)
@@ -41,9 +43,9 @@ Backend and frontend run as two separate dev processes (see `docs/DEV_SETUP.md`)
 ## Architecture
 
 - **Backend serves the frontend.** There is no separate frontend production server — `backend/app/main.py` serves the Next.js static export (`frontend/out`) at `/` and handles `/api/*` routes itself. Any frontend change intended for backend-served testing needs a rebuild (`npm run build`).
-- **One board per user, stored as a JSON blob.** `backend/app/store.py` is a SQLite repository with `users` and `boards` tables; `boards.board_json` holds the entire board (columns + cards) as one TEXT column, not normalized rows. This is a deliberate MVP tradeoff (see `docs/DB_SCHEMA.md`) — don't normalize into separate `columns`/`cards` tables without discussing it first. DB auto-creates at `backend/data/pm.db` on first use, seeded from `backend/app/default_board.py`.
+- **One board per user, stored as a JSON blob.** `backend/app/store.py` is a SQLite repository with `users` and `boards` tables; `boards.board_json` holds the entire board (columns + cards) as one TEXT column, not normalized rows. This is a deliberate MVP tradeoff (see `docs/DB_SCHEMA.md`) — don't normalize into separate `columns`/`cards` tables without discussing it first. DB auto-creates at `backend/data/pm.db` on first use, seeded from `backend/app/default_board.py`; override the path with `PM_DB_PATH` (the e2e suite does this to run against `data/e2e.db` rather than wiping the dev board).
 - **Kanban columns are fixed.** Column count/order (`col-backlog`, `col-discovery`, `col-progress`, `col-review`, `col-done`) is enforced on both client and server; only column titles are editable. Each column id has a fixed color in the frontend (see `frontend/AGENTS.md`) — preserve that mapping.
-- **Auth is a frontend-only demo gate.** Hardcoded `user`/`password` in `AuthGate.tsx`, no backend session/auth yet. Backend already models board access by username so real auth can replace the gate later without changing storage.
+- **Auth is a frontend-only demo gate.** Hardcoded `user`/`password` in `frontend/src/lib/auth.ts`, consumed by `AuthGate.tsx` through `useSyncExternalStore` (the effect-based version tripped `react-hooks/set-state-in-effect`, and a lazy `useState` initializer would break the static-export prerender). No backend session/auth yet; backend models board access by username so real auth can replace the gate without changing storage.
 - **AI chat goes through a strict schema.** `backend/app/openrouter.py` calls OpenRouter (model pinned to `openai/gpt-oss-120b`, no fallback, key from root `.env` as `OPENROUTER_API_KEY`) and requires the response to validate against a schema (`assistantMessage` + optional `board`). If validation fails, the backend must return a fallback message and leave the board untouched — never let unvalidated AI output touch persisted state. Chat history is in-memory only (lost on backend restart), not persisted to SQLite.
 - **Frontend/backend contract:** `frontend/src/lib/api.ts` (board CRUD) and `frontend/src/lib/ai.ts` (chat) are the only places that talk to the backend. When the AI chat response has `boardUpdated=true`, the frontend re-syncs board state from the backend rather than trusting local optimistic state.
 

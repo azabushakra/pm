@@ -4,11 +4,17 @@
 
 This directory contains the FastAPI backend for the Project Management MVP.
 
-## Current Step 6 Baseline
+## Current Baseline
+
+Parts 2-10 of `docs/PLAN.md` are implemented. Single-container consolidation
+is the remaining step.
 
 - Framework: FastAPI
-- Package manager: `uv`
-- Dev server command: `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`
+- Package manager: `uv`, invoked locally as `python3 -m uv` because it is
+  installed as a Python package rather than a binary on PATH. Inside the
+  Docker image `uv` is on PATH and used directly.
+- Dev server command: `python3 -m uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`
+- Test command: `python3 -m uv run pytest`
 - API endpoints:
 	- `GET /api/health`
 	- `GET /api/hello`
@@ -26,7 +32,9 @@ This directory contains the FastAPI backend for the Project Management MVP.
 - `app/store.py`: SQLite repository (auto-init DB, users, boards tables).
 - `app/openrouter.py`: OpenRouter client + structured chat helper and schema parsing.
 - `app/default_board.py`: default board JSON used to seed new users.
-- `tests/test_main.py`: backend tests for health, hello, and root HTML response.
+- `tests/test_main.py`: API tests covering health, hello, board read/write,
+  column validation, static serving, and AI chat behavior.
+- `tests/test_openrouter.py`: OpenRouter client tests with mocked HTTP.
 - `pyproject.toml`: runtime and dev dependencies, pytest configuration.
 - `Dockerfile.dev`: development image used by two-process docker setup.
 
@@ -36,3 +44,6 @@ This directory contains the FastAPI backend for the Project Management MVP.
 - Login remains frontend-only until later auth step.
 - Board persistence currently stores one JSON blob per user.
 - Chat history is in-memory only for MVP.
+- Database path defaults to `backend/data/pm.db` and can be overridden with
+  the `PM_DB_PATH` environment variable. The e2e suite uses this to avoid
+  touching the dev database.
