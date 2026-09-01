@@ -1,4 +1,4 @@
-# Frontend Agent Guide (Planning Baseline)
+cd # Frontend Agent Guide (Planning Baseline)
 
 ## Scope
 

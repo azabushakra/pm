@@ -2,8 +2,8 @@
 
 ## Approval Gate
 
-- [ ] This document is approved by the user before any implementation starts.
-- [ ] After approval, implementation proceeds part-by-part in order unless the user asks to reorder.
+- [x] This document is approved by the user before any implementation starts.
+- [x] After approval, implementation proceeds part-by-part in order unless the user asks to reorder.
 
 ## Fixed Decisions for MVP
 
@@ -24,7 +24,7 @@
 
 - [x] Rewrite this plan with detailed substeps, tests, and success criteria.
 - [x] Create frontend AGENTS baseline document describing existing frontend code.
-- [ ] User review and approval of this plan.
+- [x] User review and approval of this plan.
 
 ### Tests
 
@@ -39,13 +39,13 @@
 
 ### Checklist
 
-- [ ] Create backend FastAPI app scaffold in `backend/`.
-- [ ] Add minimal API route (health/status) and one demo route.
-- [ ] Add temporary static hello-world response from backend root or dedicated path for smoke testing.
-- [ ] Add Python project/dependency config using `uv`.
-- [ ] Add scripts in `scripts/` for Mac, Linux, and Windows to start/stop local dev processes.
-- [ ] Add Docker assets for the two-process dev setup (frontend dev + backend dev) with clear commands.
-- [ ] Document run flow in concise README/docs updates.
+- [x] Create backend FastAPI app scaffold in `backend/`.
+- [x] Add minimal API route (health/status) and one demo route.
+- [x] Add temporary static hello-world response from backend root or dedicated path for smoke testing.
+- [x] Add Python project/dependency config using `uv`.
+- [x] Add scripts in `scripts/` for Mac, Linux, and Windows to start/stop local dev processes.
+- [x] Add Docker assets for the two-process dev setup (frontend dev + backend dev) with clear commands.
+- [x] Document run flow in concise README/docs updates.
 
 ### Tests
 
@@ -64,11 +64,11 @@
 
 ### Checklist
 
-- [ ] Configure frontend build output for static serving.
-- [ ] Update backend to serve built frontend at `/`.
-- [ ] Wire static asset routing so CSS/JS/image paths resolve.
-- [ ] Remove temporary hello-world root response once Kanban page is served.
-- [ ] Keep two-process dev ergonomics while enabling production-like single-service serving path.
+- [x] Configure frontend build output for static serving.
+- [x] Update backend to serve built frontend at `/`.
+- [x] Wire static asset routing so CSS/JS/image paths resolve.
+- [x] Remove temporary hello-world root response once Kanban page is served.
+- [x] Keep two-process dev ergonomics while enabling production-like single-service serving path.
 
 ### Tests
 
@@ -85,11 +85,11 @@
 
 ### Checklist
 
-- [ ] Add login screen shown before Kanban access.
-- [ ] Hardcode accepted credentials: username `user`, password `password`.
-- [ ] Store authenticated state client-side for session continuity during tab lifetime.
-- [ ] Add logout action returning user to login screen.
-- [ ] Keep auth implementation isolated so backend auth can replace it later without major refactor.
+- [x] Add login screen shown before Kanban access.
+- [x] Hardcode accepted credentials: username `user`, password `password`.
+- [x] Store authenticated state client-side for session continuity during tab lifetime.
+- [x] Add logout action returning user to login screen.
+- [x] Keep auth implementation isolated so backend auth can replace it later without major refactor.
 
 ### Tests
 
@@ -107,11 +107,11 @@
 
 ### Checklist
 
-- [ ] Define SQLite schema for users and one board JSON blob per user.
-- [ ] Include migration/init behavior that creates DB if missing.
-- [ ] Document schema, constraints, and tradeoffs in `docs/`.
-- [ ] Include explicit note that schema is MVP-focused and intentionally denormalized.
-- [ ] Request user sign-off before implementing backend persistence logic.
+- [x] Define SQLite schema for users and one board JSON blob per user.
+- [x] Include migration/init behavior that creates DB if missing.
+- [x] Document schema, constraints, and tradeoffs in `docs/` (`docs/DB_SCHEMA.md`).
+- [x] Include explicit note that schema is MVP-focused and intentionally denormalized.
+- [x] Request user sign-off before implementing backend persistence logic.
 
 ### Tests
 
@@ -127,12 +127,12 @@
 
 ### Checklist
 
-- [ ] Implement repository/storage layer for board JSON by user.
-- [ ] Add API route(s) to fetch board for a user.
-- [ ] Add API route(s) to update board for a user.
-- [ ] Validate payload shape and handle invalid requests cleanly.
-- [ ] Ensure DB auto-creation on first run.
-- [ ] Keep API surface minimal and version-ready (prefixing or modular routing).
+- [x] Implement repository/storage layer for board JSON by user.
+- [x] Add API route(s) to fetch board for a user.
+- [x] Add API route(s) to update board for a user.
+- [x] Validate payload shape and handle invalid requests cleanly.
+- [x] Ensure DB auto-creation on first run.
+- [x] Keep API surface minimal and version-ready (prefixing or modular routing).
 
 ### Tests
 

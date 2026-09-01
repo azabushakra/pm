@@ -4,14 +4,20 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from starlette.responses import Response
 
+from app.default_board import DEFAULT_BOARD
+from app.models import BoardModel, BoardResponseModel
+from app.store import BoardStore
 
-def create_app(frontend_out_dir: Path | None = None) -> FastAPI:
+
+def create_app(frontend_out_dir: Path | None = None, db_path: Path | None = None) -> FastAPI:
     app = FastAPI(title="PM MVP Backend")
     out_dir = (
         frontend_out_dir
         if frontend_out_dir is not None
         else Path(__file__).resolve().parents[2] / "frontend" / "out"
     )
+    default_db_path = Path(__file__).resolve().parents[1] / "data" / "pm.db"
+    store = BoardStore(db_path=db_path or default_db_path, default_board=DEFAULT_BOARD)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:
@@ -20,6 +26,19 @@ def create_app(frontend_out_dir: Path | None = None) -> FastAPI:
     @app.get("/api/hello")
     def hello() -> dict[str, str]:
         return {"message": "hello from backend"}
+
+    @app.get("/api/board/{username}", response_model=BoardResponseModel)
+    def get_board(username: str) -> BoardResponseModel:
+        board = store.get_board(username)
+        return BoardResponseModel(username=username, board=BoardModel.model_validate(board))
+
+    @app.put("/api/board/{username}", response_model=BoardResponseModel)
+    def update_board(username: str, board: BoardModel) -> BoardResponseModel:
+        updated = store.set_board(username, board.model_dump())
+        return BoardResponseModel(
+            username=username,
+            board=BoardModel.model_validate(updated),
+        )
 
     @app.get("/{full_path:path}")
     def serve_frontend(full_path: str) -> Response:

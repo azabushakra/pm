@@ -28,3 +28,12 @@ uv run pytest
 - `GET /` serves built frontend (`frontend/out/index.html`)
 - `GET /api/health` health status
 - `GET /api/hello` demo API response
+- `GET /api/board/{username}` get board JSON for a user
+- `PUT /api/board/{username}` replace board JSON for a user
+
+## Persistence
+
+- SQLite database is created automatically if missing.
+- Default database path: `backend/data/pm.db`.
+- Schema includes `users` and `boards` tables.
+- MVP stores one board JSON blob per user.
