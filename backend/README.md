@@ -30,6 +30,8 @@ uv run pytest
 - `GET /api/hello` demo API response
 - `GET /api/board/{username}` get board JSON for a user
 - `PUT /api/board/{username}` replace board JSON for a user
+- `GET /api/ai/ping` OpenRouter connectivity check (model pinned to `openai/gpt-oss-120b`)
+- `POST /api/ai/chat` structured AI chat response with optional board update
 
 ## Persistence
 
@@ -37,3 +39,9 @@ uv run pytest
 - Default database path: `backend/data/pm.db`.
 - Schema includes `users` and `boards` tables.
 - MVP stores one board JSON blob per user.
+
+## AI Chat Notes
+
+- Chat history is stored in memory per user for MVP runtime only.
+- AI response must match strict schema: `assistantMessage` and optional `board`.
+- If AI schema validation fails, backend returns fallback assistant message and keeps board unchanged.

@@ -7,12 +7,13 @@ export default defineConfig({
     timeout: 10_000,
   },
   use: {
-    baseURL: "http://127.0.0.1:3100",
+    baseURL: "http://127.0.0.1:8123",
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
-    url: "http://127.0.0.1:3100",
+    command:
+      "npm run build && cd ../backend && rm -f data/pm.db && python3 -m uv run uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8123",
+    url: "http://127.0.0.1:8123",
     reuseExistingServer: false,
     timeout: 120_000,
   },

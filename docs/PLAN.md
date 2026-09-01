@@ -150,11 +150,11 @@
 
 ### Checklist
 
-- [ ] Replace frontend in-memory board source with backend API fetch/update flow.
-- [ ] Keep UX responsive when saving (optimistic or explicit loading, decided during implementation).
-- [ ] Handle API errors with concise user-visible feedback.
-- [ ] Preserve existing board features: rename columns, add/delete/move cards.
-- [ ] Ensure fixed column order/count is enforced client and server side.
+- [x] Replace frontend in-memory board source with backend API fetch/update flow.
+- [x] Keep UX responsive when saving (optimistic or explicit loading, decided during implementation).
+- [x] Handle API errors with concise user-visible feedback.
+- [x] Preserve existing board features: rename columns, add/delete/move cards.
+- [x] Ensure fixed column order/count is enforced client and server side.
 
 ### Tests
 
@@ -172,10 +172,10 @@
 
 ### Checklist
 
-- [ ] Add backend OpenRouter client integration using `OPENROUTER_API_KEY` from root `.env`.
-- [ ] Pin model to `openai/gpt-oss-120b` with no fallback.
-- [ ] Add minimal backend endpoint/service method for connectivity check.
-- [ ] Implement robust error mapping for missing key, network error, and non-2xx responses.
+- [x] Add backend OpenRouter client integration using `OPENROUTER_API_KEY` from root `.env`.
+- [x] Pin model to `openai/gpt-oss-120b` with no fallback.
+- [x] Add minimal backend endpoint/service method for connectivity check.
+- [x] Implement robust error mapping for missing key, network error, and non-2xx responses.
 
 ### Tests
 
@@ -193,12 +193,12 @@
 
 ### Checklist
 
-- [ ] Define strict structured response schema (assistant text + optional board update payload).
-- [ ] Send current board JSON, user message, and in-memory conversation history to AI.
-- [ ] Validate AI output strictly against schema.
-- [ ] If schema validation fails, do not update board and return fallback message.
-- [ ] If schema passes and includes update, persist updated board via same backend storage flow.
-- [ ] Keep chat history in memory only for MVP.
+- [x] Define strict structured response schema (assistant text + optional board update payload).
+- [x] Send current board JSON, user message, and in-memory conversation history to AI.
+- [x] Validate AI output strictly against schema.
+- [x] If schema validation fails, do not update board and return fallback message.
+- [x] If schema passes and includes update, persist updated board via same backend storage flow.
+- [x] Keep chat history in memory only for MVP.
 
 ### Tests
 
@@ -216,11 +216,11 @@
 
 ### Checklist
 
-- [ ] Add sidebar chat UI integrated into existing page layout.
-- [ ] Send user prompts to backend AI endpoint and render assistant responses.
-- [ ] If backend reports board update applied, refresh/sync board UI automatically.
-- [ ] Show loading, error, and fallback states clearly.
-- [ ] Keep interaction simple and focused for MVP.
+- [x] Add sidebar chat UI integrated into existing page layout.
+- [x] Send user prompts to backend AI endpoint and render assistant responses.
+- [x] If backend reports board update applied, refresh/sync board UI automatically.
+- [x] Show loading, error, and fallback states clearly.
+- [x] Keep interaction simple and focused for MVP.
 
 ### Tests
 

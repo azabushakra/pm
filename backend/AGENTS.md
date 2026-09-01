@@ -14,6 +14,8 @@ This directory contains the FastAPI backend for the Project Management MVP.
 	- `GET /api/hello`
 	- `GET /api/board/{username}`
 	- `PUT /api/board/{username}`
+	- `GET /api/ai/ping`
+	- `POST /api/ai/chat`
 - Frontend serving:
 	- `GET /` and other non-API paths serve built frontend files from `frontend/out`.
 
@@ -22,6 +24,7 @@ This directory contains the FastAPI backend for the Project Management MVP.
 - `app/main.py`: app definition, API routes, board endpoints, and frontend static-file serving.
 - `app/models.py`: Pydantic request/response models for board payload validation.
 - `app/store.py`: SQLite repository (auto-init DB, users, boards tables).
+- `app/openrouter.py`: OpenRouter client + structured chat helper and schema parsing.
 - `app/default_board.py`: default board JSON used to seed new users.
 - `tests/test_main.py`: backend tests for health, hello, and root HTML response.
 - `pyproject.toml`: runtime and dev dependencies, pytest configuration.
@@ -32,3 +35,4 @@ This directory contains the FastAPI backend for the Project Management MVP.
 - Keep backend simple and explicit.
 - Login remains frontend-only until later auth step.
 - Board persistence currently stores one JSON blob per user.
+- Chat history is in-memory only for MVP.

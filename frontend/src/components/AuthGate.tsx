@@ -140,7 +140,7 @@ export const AuthGate = () => {
           Log out
         </button>
       </div>
-      <KanbanBoard />
+      <KanbanBoard username={DEMO_USERNAME} />
     </div>
   );
 };

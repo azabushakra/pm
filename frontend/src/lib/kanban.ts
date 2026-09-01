@@ -15,6 +15,14 @@ export type BoardData = {
   cards: Record<string, Card>;
 };
 
+export const FIXED_COLUMN_IDS = [
+  "col-backlog",
+  "col-discovery",
+  "col-progress",
+  "col-review",
+  "col-done",
+] as const;
+
 export const initialData: BoardData = {
   columns: [
     { id: "col-backlog", title: "Backlog", cardIds: ["card-1", "card-2"] },
@@ -165,4 +173,32 @@ export const createId = (prefix: string) => {
   const randomPart = Math.random().toString(36).slice(2, 8);
   const timePart = Date.now().toString(36);
   return `${prefix}-${randomPart}${timePart}`;
+};
+
+export const normalizeBoardColumns = (board: BoardData): BoardData => {
+  const byId = new Map(board.columns.map((column) => [column.id, column]));
+  const seenCardIds = new Set<string>();
+
+  const columns = initialData.columns.map((baseColumn) => {
+    const incoming = byId.get(baseColumn.id);
+    const sourceCardIds = incoming?.cardIds ?? baseColumn.cardIds;
+    const cardIds = sourceCardIds.filter((cardId) => {
+      if (!board.cards[cardId] || seenCardIds.has(cardId)) {
+        return false;
+      }
+      seenCardIds.add(cardId);
+      return true;
+    });
+
+    return {
+      id: baseColumn.id,
+      title: incoming?.title ?? baseColumn.title,
+      cardIds,
+    };
+  });
+
+  return {
+    cards: board.cards,
+    columns,
+  };
 };
