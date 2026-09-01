@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Supplies OPENROUTER_API_KEY. Without it the app still runs and the AI
+    # endpoints return 503.
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - app_data:/app/data
+    ports:
+      - "8000:8000"
+
+volumes:
+  app_data:

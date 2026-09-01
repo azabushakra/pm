@@ -1,0 +1,21 @@
+.git
+.gitignore
+.run
+docs
+scripts
+
+# Local secrets. Supplied to the container at run time via env_file.
+.env
+
+# Frontend build inputs and outputs are produced inside the image.
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/test-results
+frontend/playwright-report
+
+# Backend local state.
+backend/.venv
+backend/data
+backend/.pytest_cache
+**/__pycache__

@@ -6,8 +6,8 @@ This directory contains the FastAPI backend for the Project Management MVP.
 
 ## Current Baseline
 
-Parts 2-10 of `docs/PLAN.md` are implemented. Single-container consolidation
-is the remaining step.
+All parts of `docs/PLAN.md`, including single-container consolidation, are
+implemented.
 
 - Framework: FastAPI
 - Package manager: `uv`, invoked locally as `python3 -m uv` because it is
@@ -47,3 +47,5 @@ is the remaining step.
 - Database path defaults to `backend/data/pm.db` and can be overridden with
   the `PM_DB_PATH` environment variable. The e2e suite uses this to avoid
   touching the dev database.
+- Frontend export directory defaults to `frontend/out` and can be overridden
+  with `PM_FRONTEND_DIR`. The single-container image sets both variables.

@@ -32,6 +32,14 @@ npm run test:e2e            # Playwright
 npm run test:all            # unit + e2e
 ```
 
+### Run the whole app
+
+```bash
+docker compose up --build   # single container on :8000, the default path
+```
+
+Multi-stage `Dockerfile`: node stage builds the static export, python stage serves it plus the API. State lives in the `app_data` volume and survives restarts. `docker-compose.dev.yml` is the opt-in two-process dev setup, not the default.
+
 ### Full local dev
 
 Backend and frontend run as two separate dev processes (see `docs/DEV_SETUP.md`):
@@ -42,7 +50,7 @@ Backend and frontend run as two separate dev processes (see `docs/DEV_SETUP.md`)
 
 ## Architecture
 
-- **Backend serves the frontend.** There is no separate frontend production server — `backend/app/main.py` serves the Next.js static export (`frontend/out`) at `/` and handles `/api/*` routes itself. Any frontend change intended for backend-served testing needs a rebuild (`npm run build`).
+- **Backend serves the frontend.** There is no separate frontend production server — `backend/app/main.py` serves the Next.js static export at `/` and handles `/api/*` routes itself. Any frontend change intended for backend-served testing needs a rebuild (`npm run build`); in the container the build is a stage of the image. The export directory defaults to `frontend/out` and is overridable with `PM_FRONTEND_DIR`.
 - **One board per user, stored as a JSON blob.** `backend/app/store.py` is a SQLite repository with `users` and `boards` tables; `boards.board_json` holds the entire board (columns + cards) as one TEXT column, not normalized rows. This is a deliberate MVP tradeoff (see `docs/DB_SCHEMA.md`) — don't normalize into separate `columns`/`cards` tables without discussing it first. DB auto-creates at `backend/data/pm.db` on first use, seeded from `backend/app/default_board.py`; override the path with `PM_DB_PATH` (the e2e suite does this to run against `data/e2e.db` rather than wiping the dev board).
 - **Kanban columns are fixed.** Column count/order (`col-backlog`, `col-discovery`, `col-progress`, `col-review`, `col-done`) is enforced on both client and server; only column titles are editable. Each column id has a fixed color in the frontend (see `frontend/AGENTS.md`) — preserve that mapping.
 - **Auth is a frontend-only demo gate.** Hardcoded `user`/`password` in `frontend/src/lib/auth.ts`, consumed by `AuthGate.tsx` through `useSyncExternalStore` (the effect-based version tripped `react-hooks/set-state-in-effect`, and a lazy `useState` initializer would break the static-export prerender). No backend session/auth yet; backend models board access by username so real auth can replace the gate without changing storage.

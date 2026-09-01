@@ -1,8 +1,26 @@
 # Dev Setup
 
+## Run the MVP (Single Container)
+
+This is the default way to run the whole app. One command builds the frontend
+export and starts the backend serving it alongside the API:
+
+```bash
+docker compose up --build
+```
+
+Open `http://localhost:8000`, then sign in with `user` / `password`.
+
+- Requires port 8000 to be free.
+- `OPENROUTER_API_KEY` is read from `.env` in the repo root. Without it the app
+  still runs and only the AI endpoints return 503.
+- The database lives in the `app_data` Docker volume, so board state survives
+  container restarts and rebuilds. `docker compose down -v` discards it.
+
 ## Local Two-Process Dev
 
-Run backend and frontend separately for active frontend development.
+For active frontend development with hot reload. Run backend and frontend
+separately.
 
 Locally, `uv` is invoked as `python3 -m uv` because it is installed as a Python
 package rather than a standalone binary on PATH. Inside the Docker image, `uv`
@@ -60,7 +78,8 @@ From repo root:
 
 ## Docker Two-Process Dev
 
-From repo root:
+Optional. Only for working on the frontend against a containerized backend;
+`docker compose up` above is the default path.
 
 ```bash
 docker compose -f docker-compose.dev.yml up --build
@@ -70,6 +89,14 @@ docker compose -f docker-compose.dev.yml up --build
 - Backend: http://localhost:8000
 
 Backend root (`/`) serves the built frontend output from `frontend/out`.
+
+## Configuration
+
+Both are optional and mainly used by the container and the test suite.
+
+- `PM_DB_PATH`: SQLite file path. Defaults to `backend/data/pm.db`.
+- `PM_FRONTEND_DIR`: directory holding the built frontend. Defaults to
+  `frontend/out` relative to the repo.
 
 ## Tests
 

@@ -240,14 +240,27 @@ This happens after Parts 2-10 are functionally stable.
 
 ### Checklist
 
-- [ ] Consolidate runtime into one Docker container serving backend + built frontend.
-- [ ] Remove temporary two-process container orchestration from default path.
-- [ ] Keep local scripts straightforward and minimal.
+- [x] Consolidate runtime into one Docker container serving backend + built frontend.
+- [x] Remove temporary two-process container orchestration from default path.
+- [x] Keep local scripts straightforward and minimal.
+
+Implemented as a multi-stage `Dockerfile`: a node stage builds the static
+export, and a python stage serves it with the API. `docker compose up --build`
+is the default path; `docker-compose.dev.yml` remains as an opt-in two-process
+setup. Board state persists in the `app_data` volume. The start/stop scripts
+were already correct and were left unchanged.
 
 ### Tests
 
 - Docker build test from clean checkout.
 - Container run test: login, board operations, backend persistence, and AI endpoint path all accessible.
+
+Both were run. The image built from a tree containing only tracked files, with
+no `node_modules`, `.venv`, or prior build output. Against the running
+container: the frontend and its static assets were served, board read/write
+worked and invalid columns were still rejected with 422, `/api/ai/ping` and
+`/api/ai/chat` reached OpenRouter, a written board survived `docker restart`,
+and the full Playwright suite passed against the container.
 
 ### Success Criteria
 
@@ -255,8 +268,9 @@ This happens after Parts 2-10 are functionally stable.
 
 ## Global Definition of Done
 
-- [ ] All required tests pass for changed areas.
-- [ ] No regressions in existing Kanban interactions.
-- [ ] Docs remain concise and current.
-- [ ] Scope matches MVP only; no unnecessary features added.
-- [ ] User approves transition from planning to implementation.
+- [x] All required tests pass for changed areas.
+- [x] No regressions in existing Kanban interactions.
+- [x] Docs remain concise and current.
+- [x] Scope matches MVP only; no unnecessary features added.
+- [x] User approves transition from planning to implementation (recorded in
+      Part 1).

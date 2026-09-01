@@ -44,11 +44,13 @@ def create_app(frontend_out_dir: Path | None = None, db_path: Path | None = None
         allow_headers=["*"],
     )
 
-    out_dir = (
-        frontend_out_dir
-        if frontend_out_dir is not None
-        else Path(__file__).resolve().parents[2] / "frontend" / "out"
-    )
+    env_frontend_dir = os.getenv("PM_FRONTEND_DIR")
+    if frontend_out_dir is not None:
+        out_dir = frontend_out_dir
+    elif env_frontend_dir:
+        out_dir = Path(env_frontend_dir)
+    else:
+        out_dir = Path(__file__).resolve().parents[2] / "frontend" / "out"
     env_db_path = os.getenv("PM_DB_PATH")
     default_db_path = (
         Path(env_db_path)
