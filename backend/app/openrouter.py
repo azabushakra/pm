@@ -161,6 +161,19 @@ def run_openrouter_connectivity_check(http_client: httpx.Client | None = None) -
     }
 
 
+def _card_count_block(current_board: dict[str, Any]) -> str:
+    columns = current_board["columns"]
+    per_column = " | ".join(
+        f"{column['title']}: {len(column['cardIds'])}" for column in columns
+    )
+    total = sum(len(column["cardIds"]) for column in columns)
+    return (
+        "Card counts, already computed for you. Use these numbers directly "
+        "rather than counting the JSON yourself:\n"
+        f"Total cards: {total}. {per_column}"
+    )
+
+
 def run_openrouter_structured_chat(
     *,
     user_message: str,
@@ -188,6 +201,7 @@ def run_openrouter_structured_chat(
     user_prompt = (
         "Current board JSON:\n"
         f"{json.dumps(current_board)}\n\n"
+        f"{_card_count_block(current_board)}\n\n"
         "Conversation history:\n"
         f"{history_block}\n\n"
         "Latest user message:\n"

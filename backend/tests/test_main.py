@@ -1,11 +1,15 @@
+import json
 from pathlib import Path
 import sqlite3
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+from app.default_board import DEFAULT_BOARD
 from app.main import create_app
-from app.openrouter import OpenRouterError
+from app.models import AIModelOutputModel
+from app.openrouter import OpenRouterError, run_openrouter_structured_chat
 
 
 def _write_file(path: Path, content: str) -> None:
@@ -543,29 +547,84 @@ def test_ai_chat_includes_conversation_history(
     ]
 
 
-def test_ai_chat_card_count_is_deterministic_without_model_call(
+def test_ai_chat_routes_card_questions_to_the_model(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """Card questions must reach the model, not a keyword intercept.
+
+    A previous implementation answered anything matching "card" plus a
+    counting word without calling the model, which also swallowed compound
+    requests like the one below that ask for a board change.
+    """
     from app import main as main_module
 
-    def fail_if_called(**_kwargs):
-        raise AssertionError("Model call should not happen for card count questions")
+    captured_messages: list[str] = []
 
-    monkeypatch.setattr(main_module, "run_openrouter_structured_chat", fail_if_called)
+    def fake_chat(*, user_message: str, current_board: dict, conversation_history: list):
+        captured_messages.append(user_message)
+        renamed = json.loads(json.dumps(current_board))
+        renamed["columns"][0]["title"] = "Ideas"
+        return AIModelOutputModel.model_validate(
+            {"assistantMessage": "There are 8 cards. Renamed Backlog.", "board": renamed}
+        )
+
+    monkeypatch.setattr(main_module, "run_openrouter_structured_chat", fake_chat)
     client = _make_client(tmp_path)
 
     response = client.post(
         "/api/ai/chat",
-        json={"username": "user", "message": "How many cards are on this board?"},
+        json={
+            "username": "user",
+            "message": "How many cards are there, and rename Backlog to Ideas?",
+        },
     )
 
     assert response.status_code == 200
     body = response.json()
-    assert body["boardUpdated"] is False
-    assert body["usedFallback"] is False
-    assert body["assistantMessage"].startswith("Total cards: 8.")
-    assert "Backlog: 2" in body["assistantMessage"]
-    assert "Discovery: 1" in body["assistantMessage"]
-    assert "In Progress: 2" in body["assistantMessage"]
-    assert "Review: 1" in body["assistantMessage"]
-    assert "Done: 2" in body["assistantMessage"]
+    assert captured_messages == [
+        "How many cards are there, and rename Backlog to Ideas?"
+    ]
+    assert body["boardUpdated"] is True
+    assert body["board"]["columns"][0]["title"] == "Ideas"
+
+
+def test_structured_chat_prompt_carries_authoritative_card_counts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Counts are computed server-side so the model never has to count."""
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    captured_prompt: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = json.loads(request.content.decode("utf-8"))
+        captured_prompt["value"] = payload["messages"][-1]["content"]
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "message": {
+                            "content": json.dumps(
+                                {"assistantMessage": "ok", "board": None}
+                            )
+                        }
+                    }
+                ]
+            },
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as http_client:
+        run_openrouter_structured_chat(
+            user_message="How many cards are there?",
+            current_board=DEFAULT_BOARD,
+            conversation_history=[],
+            http_client=http_client,
+        )
+
+    prompt = captured_prompt["value"]
+    assert "Total cards: 8." in prompt
+    assert "Backlog: 2" in prompt
+    assert "Discovery: 1" in prompt
+    assert "In Progress: 2" in prompt
+    assert "Review: 1" in prompt
+    assert "Done: 2" in prompt

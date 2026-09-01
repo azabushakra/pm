@@ -61,23 +61,6 @@ def create_app(frontend_out_dir: Path | None = None, db_path: Path | None = None
     def _has_expected_columns(board: BoardModel) -> bool:
         return [column.id for column in board.columns] == EXPECTED_COLUMN_IDS
 
-    def _is_card_count_question(message: str) -> bool:
-        lowered = message.lower()
-        return "card" in lowered and any(
-            phrase in lowered
-            for phrase in [
-                "how many",
-                "number of",
-                "count",
-                "total",
-            ]
-        )
-
-    def _build_card_count_message(board: BoardModel) -> str:
-        counts = [f"{column.title}: {len(column.cardIds)}" for column in board.columns]
-        total = sum(len(column.cardIds) for column in board.columns)
-        return f"Total cards: {total}. " + " | ".join(counts)
-
     @app.get("/api/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
@@ -124,24 +107,6 @@ def create_app(frontend_out_dir: Path | None = None, db_path: Path | None = None
         current_board_dict = store.get_board(request.username)
         current_board = BoardModel.model_validate(current_board_dict)
         history = chat_history_by_user.setdefault(request.username, [])
-
-        if _is_card_count_question(request.message):
-            assistant_message = _build_card_count_message(current_board)
-            response = AIChatResponseModel(
-                username=request.username,
-                assistantMessage=assistant_message,
-                boardUpdated=False,
-                usedFallback=False,
-                board=current_board,
-            )
-            history.append(ChatHistoryMessageModel(role="user", content=request.message))
-            history.append(
-                ChatHistoryMessageModel(
-                    role="assistant",
-                    content=assistant_message,
-                )
-            )
-            return response
 
         try:
             ai_output = run_openrouter_structured_chat(
