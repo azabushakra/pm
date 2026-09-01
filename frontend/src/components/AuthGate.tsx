@@ -43,20 +43,28 @@ export const AuthGate = () => {
 
   if (!isAuthenticated) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 py-12">
-        <section className="w-full max-w-md rounded-3xl border border-[var(--stroke)] bg-white p-8 shadow-[var(--shadow)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--gray-text)]">
-            Sign In
-          </p>
-          <h1 className="mt-3 font-display text-3xl font-semibold text-[var(--navy-dark)]">
+      <main className="flex min-h-screen w-full items-center justify-center bg-[var(--surface)] px-6 py-12">
+        <section className="w-full max-w-[400px] rounded-2xl border border-[var(--stroke)] bg-white p-8 shadow-[var(--shadow-lg)]">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--navy-dark)]">
+            <span className="grid grid-cols-2 gap-1">
+              <span className="h-2 w-2 rounded-[3px] bg-[var(--accent-yellow)]" />
+              <span className="h-2 w-2 rounded-[3px] bg-[var(--primary-blue)]" />
+              <span className="h-2 w-2 rounded-[3px] bg-[var(--primary-blue)]" />
+              <span className="h-2 w-2 rounded-[3px] bg-[#10a37a]" />
+            </span>
+          </span>
+          <h1 className="mt-4 font-display text-2xl font-semibold text-[var(--ink)]">
             Kanban Studio
           </h1>
-          <p className="mt-2 text-sm text-[var(--gray-text)]">
-            Use the demo account to access your board.
+          <p className="mt-1.5 text-sm text-[var(--muted)]">
+            Sign in to open your board.
           </p>
 
-          <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit}>
-            <label className="text-sm font-semibold text-[var(--navy-dark)]" htmlFor="username">
+          <form className="mt-6 flex flex-col gap-1.5" onSubmit={handleSubmit}>
+            <label
+              className="text-[0.8125rem] font-semibold text-[var(--ink)]"
+              htmlFor="username"
+            >
               Username
             </label>
             <input
@@ -64,12 +72,15 @@ export const AuthGate = () => {
               type="text"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              className="rounded-xl border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-[var(--primary-blue)]"
+              className="mb-2 rounded-lg border border-[var(--stroke)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--primary-blue)]"
               autoComplete="username"
               required
             />
 
-            <label className="text-sm font-semibold text-[var(--navy-dark)]" htmlFor="password">
+            <label
+              className="text-[0.8125rem] font-semibold text-[var(--ink)]"
+              htmlFor="password"
+            >
               Password
             </label>
             <div className="relative">
@@ -78,7 +89,7 @@ export const AuthGate = () => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="w-full rounded-xl border border-[var(--stroke)] px-3 py-2 pr-11 text-sm outline-none focus:border-[var(--primary-blue)]"
+                className="w-full rounded-lg border border-[var(--stroke)] px-3 py-2 pr-11 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--primary-blue)]"
                 autoComplete="current-password"
                 required
               />
@@ -87,7 +98,7 @@ export const AuthGate = () => {
                 aria-label={showPassword ? "Hide password" : "Show password"}
                 title={showPassword ? "Hide password" : "Show password"}
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-transparent p-1.5 text-[var(--gray-text)] hover:border-[var(--stroke)] hover:text-[var(--navy-dark)]"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-[var(--muted)] transition hover:bg-[var(--surface-sunken)] hover:text-[var(--ink)]"
               >
                 {showPassword ? (
                   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -106,39 +117,30 @@ export const AuthGate = () => {
             </div>
 
             {error ? (
-              <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+              <p
+                className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[0.8125rem] text-red-700"
+                role="alert"
+              >
                 {error}
               </p>
             ) : null}
 
             <button
               type="submit"
-              className="mt-2 rounded-xl bg-[var(--secondary-purple)] px-4 py-2 text-sm font-semibold text-white"
+              className="mt-4 rounded-lg bg-[var(--secondary-purple)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
             >
               Sign In
             </button>
           </form>
 
-          <p className="mt-6 text-xs text-[var(--gray-text)]">
-            Demo credentials: user / password
+          <p className="mt-5 rounded-lg bg-[var(--surface-sunken)] px-3 py-2 text-xs text-[var(--muted)]">
+            Demo credentials: <span className="font-semibold text-[var(--ink-soft)]">user</span> /{" "}
+            <span className="font-semibold text-[var(--ink-soft)]">password</span>
           </p>
         </section>
       </main>
     );
   }
 
-  return (
-    <div>
-      <div className="fixed right-6 top-5 z-20">
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="rounded-full border border-[var(--stroke)] bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--navy-dark)] shadow-[var(--shadow)]"
-        >
-          Log out
-        </button>
-      </div>
-      <KanbanBoard username={DEMO_USERNAME} />
-    </div>
-  );
+  return <KanbanBoard username={DEMO_USERNAME} onLogout={handleLogout} />;
 };

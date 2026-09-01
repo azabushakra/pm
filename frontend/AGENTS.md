@@ -29,16 +29,36 @@ This document describes the current frontend implementation in `frontend/`.
 
 ## UI Conventions
 
-- Remove-card action uses icon-only button with accessible `aria-label`.
-- Card description text must wrap safely (`break-words` + `overflow-wrap:anywhere`).
-- Board layout should use available width on desktop and avoid unnecessary side whitespace.
-- Stage color coding is fixed and unique by column id:
+- Design tokens live in `src/app/globals.css`. Use `--ink` for headings,
+  `--ink-soft` for body copy, and `--muted` for secondary text. The brand
+  `--gray-text` (#888888) is too light for small body copy on white, so it is
+  reserved for decorative labels.
+- The app shell is full height and does not scroll as a page on desktop.
+  Columns scroll internally; the board strip scrolls sideways below its
+  minimum width rather than squeezing columns to an unreadable size.
+- Chrome stays out of the way: a single compact top bar holds the product
+  name, card total, save status, user, and logout. Avoid reintroducing large
+  headers or marketing copy, which push the board below the fold.
+- Prefer sentence case. Uppercase with wide letter-spacing is hard to read and
+  should stay rare.
+- Remove-card action uses an icon-only button with an accessible `aria-label`.
+  It is revealed on card hover and on keyboard focus, never permanently
+  visible, so cards stay quiet at rest.
+- Card description text must wrap safely (`break-words` +
+  `overflow-wrap:anywhere`).
+- Stage color coding is fixed and unique by column id, defined once in
+  `src/lib/kanban.ts` as `STAGE_COLOR` and passed to CSS as a `--stage`
+  custom property:
   - `col-backlog`: amber
-  - `col-discovery`: sky
-  - `col-progress`: violet
+  - `col-discovery`: brand blue
+  - `col-progress`: brand purple
   - `col-review`: rose
-  - `col-done`: emerald
-- AI sidebar should keep strong hierarchy: header, message stream, composer, and explicit loading/error states.
+  - `col-done`: green
+- During a drag, the destination column highlights. Hovering a card resolves
+  the collision to that card rather than the column, so `KanbanBoard` tracks
+  the target column in `onDragOver` and passes `isTarget` to the column.
+- AI sidebar should keep strong hierarchy: header, message stream, composer,
+  and explicit loading/error states.
 
 ## Component Map
 

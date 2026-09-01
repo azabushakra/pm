@@ -1,98 +1,71 @@
+import type { CSSProperties } from "react";
 import clsx from "clsx";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import type { Card, Column } from "@/lib/kanban";
+import { stageColor, type Card, type Column } from "@/lib/kanban";
 import { KanbanCard } from "@/components/KanbanCard";
 import { NewCardForm } from "@/components/NewCardForm";
 
 type KanbanColumnProps = {
   column: Column;
   cards: Card[];
+  /** True while a dragged card would land in this column. */
+  isTarget?: boolean;
   onRename: (columnId: string, title: string) => void;
   onAddCard: (columnId: string, title: string, details: string) => void;
   onDeleteCard: (columnId: string, cardId: string) => void;
 };
 
-const STAGE_STYLE_BY_ID: Record<
-  string,
-  {
-    bar: string;
-    badge: string;
-    surface: string;
-    ring: string;
-  }
-> = {
-  "col-backlog": {
-    bar: "bg-amber-500",
-    badge: "text-amber-700",
-    surface: "border-amber-100",
-    ring: "ring-amber-300",
-  },
-  "col-discovery": {
-    bar: "bg-sky-500",
-    badge: "text-sky-700",
-    surface: "border-sky-100",
-    ring: "ring-sky-300",
-  },
-  "col-progress": {
-    bar: "bg-violet-500",
-    badge: "text-violet-700",
-    surface: "border-violet-100",
-    ring: "ring-violet-300",
-  },
-  "col-review": {
-    bar: "bg-rose-500",
-    badge: "text-rose-700",
-    surface: "border-rose-100",
-    ring: "ring-rose-300",
-  },
-  "col-done": {
-    bar: "bg-emerald-500",
-    badge: "text-emerald-700",
-    surface: "border-emerald-100",
-    ring: "ring-emerald-300",
-  },
-};
-
 export const KanbanColumn = ({
   column,
   cards,
+  isTarget = false,
   onRename,
   onAddCard,
   onDeleteCard,
 }: KanbanColumnProps) => {
-  const { setNodeRef, isOver } = useDroppable({ id: column.id });
-  const stageStyle = STAGE_STYLE_BY_ID[column.id] ?? STAGE_STYLE_BY_ID["col-backlog"];
+  const { setNodeRef, isOver: isDirectlyOver } = useDroppable({ id: column.id });
+  // Hovering a card resolves the collision to that card, not to the column, so
+  // the column highlight also honours the target reported by the board.
+  const isOver = isDirectlyOver || isTarget;
+
+  const style = { "--stage": stageColor(column.id) } as CSSProperties;
 
   return (
     <section
       ref={setNodeRef}
+      style={style}
       className={clsx(
-        "flex h-[620px] min-h-[620px] flex-col overflow-hidden rounded-3xl border bg-[var(--surface-strong)] p-4 shadow-[var(--shadow)] transition",
-        stageStyle.surface,
-        isOver && ["ring-2", stageStyle.ring]
+        "flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-[var(--surface-sunken)] transition-colors duration-150",
+        isOver
+          ? "border-[var(--stage)] bg-[color-mix(in_srgb,var(--stage)_7%,white)]"
+          : "border-[var(--stroke)]"
       )}
       data-testid={`column-${column.id}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="w-full">
-          <div className="flex items-center gap-3">
-            <div className={clsx("h-2 w-10 rounded-full", stageStyle.bar)} />
-            <span className={clsx("text-xs font-semibold uppercase tracking-[0.2em]", stageStyle.badge)}>
-              {cards.length} cards
-            </span>
-          </div>
-          <input
-            value={column.title}
-            onChange={(event) => onRename(column.id, event.target.value)}
-            className="mt-3 w-full bg-transparent font-display text-lg font-semibold text-[var(--navy-dark)] outline-none"
-            aria-label="Column title"
-          />
-        </div>
-      </div>
-      <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+      <div className="h-1 w-full shrink-0 bg-[var(--stage)]" />
+
+      <header className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-3">
+        <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--stage)]" />
+        <input
+          value={column.title}
+          onChange={(event) => onRename(column.id, event.target.value)}
+          className={clsx(
+            "min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-1.5 py-0.5",
+            "font-display text-[0.9375rem] font-semibold text-[var(--ink)] outline-none transition",
+            "hover:border-[var(--stroke)] hover:bg-white",
+            "focus:border-[var(--primary-blue)] focus:bg-white"
+          )}
+          aria-label="Column title"
+        />
+        <span className="shrink-0 rounded-full bg-[color-mix(in_srgb,var(--stage)_14%,white)] px-2 py-0.5 text-xs font-semibold tabular-nums text-[color-mix(in_srgb,var(--stage)_75%,black)]">
+          {cards.length}
+        </span>
+      </header>
+
+      <div className="scroll-slim min-h-0 flex-1 overflow-y-auto px-3 pb-3">
         <SortableContext items={column.cardIds} strategy={verticalListSortingStrategy}>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {cards.map((card) => (
               <KanbanCard
                 key={card.id}
@@ -103,14 +76,22 @@ export const KanbanColumn = ({
           </div>
         </SortableContext>
         {cards.length === 0 && (
-          <div className="mt-1 flex min-h-[140px] items-center justify-center rounded-2xl border border-dashed border-[var(--stroke)] px-3 py-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gray-text)]">
+          <div
+            className={clsx(
+              "flex min-h-[88px] items-center justify-center rounded-xl border border-dashed px-3 text-center text-[0.8125rem] transition-colors",
+              isOver
+                ? "border-[var(--stage)] text-[var(--stage)]"
+                : "border-[var(--stroke-strong)] text-[var(--muted)]"
+            )}
+          >
             Drop a card here
           </div>
         )}
+
+        <div className="mt-2">
+          <NewCardForm onAdd={(title, details) => onAddCard(column.id, title, details)} />
+        </div>
       </div>
-      <NewCardForm
-        onAdd={(title, details) => onAddCard(column.id, title, details)}
-      />
     </section>
   );
 };

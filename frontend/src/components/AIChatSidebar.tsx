@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 
 export type ChatMessage = {
   role: "user" | "assistant";
@@ -14,84 +15,136 @@ type AIChatSidebarProps = {
   onSend: (message: string) => Promise<void>;
 };
 
+const SUGGESTIONS = [
+  "Move card-1 to Review",
+  "Rename Backlog to Ideas",
+  "Add a card to Discovery",
+];
+
 export const AIChatSidebar = ({ messages, isLoading, error, onSend }: AIChatSidebarProps) => {
   const [input, setInput] = useState("");
+  const streamRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  useEffect(() => {
+    const stream = streamRef.current;
+    if (stream) {
+      stream.scrollTop = stream.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
+  const submit = async () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) {
       return;
     }
-
     setInput("");
     await onSend(trimmed);
   };
 
-  return (
-    <aside className="flex h-[640px] max-h-[calc(100vh-5rem)] min-h-[560px] flex-col overflow-hidden rounded-3xl border border-[var(--stroke)] bg-white shadow-[var(--shadow)]">
-      <div className="border-b border-[var(--stroke)] bg-[linear-gradient(145deg,#032147_0%,#0a3c76_58%,#209dd7_100%)] px-5 py-5 text-white">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/80">
-          AI Assistant
-        </p>
-        <h2 className="mt-2 font-display text-2xl font-semibold text-white">
-          Board Copilot
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-white/85">
-          Ask for card creation, edits, and moves. Replies can apply board updates instantly.
-        </p>
-      </div>
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await submit();
+  };
 
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-[linear-gradient(180deg,#f4f8ff_0%,#f8f9fc_100%)] px-4 py-4" data-testid="chat-messages">
+  return (
+    <aside className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--stroke)] bg-white shadow-[var(--shadow-md)]">
+      <header className="flex shrink-0 items-center gap-2.5 border-b border-[var(--stroke)] px-4 py-3">
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--secondary-purple)] text-white">
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />
+          </svg>
+        </span>
+        <div className="min-w-0">
+          <h2 className="font-display text-[0.9375rem] font-semibold text-[var(--ink)]">
+            Board Copilot
+          </h2>
+          <p className="text-xs text-[var(--muted)]">Creates, edits, and moves cards</p>
+        </div>
+      </header>
+
+      <div
+        ref={streamRef}
+        className="scroll-slim min-h-0 flex-1 space-y-2.5 overflow-y-auto px-4 py-4"
+        data-testid="chat-messages"
+      >
         {messages.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[var(--stroke)] bg-white/70 px-4 py-3 text-sm text-[var(--gray-text)]">
-            Try: Move card-1 to Review and rename Backlog to Ideas.
+          <div className="space-y-2">
+            <p className="text-[0.8125rem] text-[var(--muted)]">
+              Ask for board changes in plain language.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {SUGGESTIONS.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => setInput(suggestion)}
+                  className="rounded-full border border-[var(--stroke)] bg-[var(--surface-sunken)] px-2.5 py-1 text-xs font-medium text-[var(--ink-soft)] transition hover:border-[var(--primary-blue)] hover:text-[var(--primary-blue)]"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
           </div>
         ) : null}
+
         {messages.map((message, index) => (
           <div
             key={`${message.role}-${index}`}
-            className={
+            className={clsx(
+              "max-w-[88%] rounded-2xl px-3 py-2 text-[0.8125rem] leading-5 break-words [overflow-wrap:anywhere]",
               message.role === "user"
-                ? "ml-8 rounded-2xl rounded-br-md bg-[var(--navy-dark)] px-3 py-2 text-sm leading-6 text-white shadow-[0_10px_20px_rgba(3,33,71,0.16)]"
-                : "mr-8 rounded-2xl rounded-bl-md border border-[var(--stroke)] bg-white px-3 py-2 text-sm leading-6 text-[var(--navy-dark)] shadow-[0_6px_16px_rgba(3,33,71,0.08)]"
-            }
+                ? "ml-auto rounded-br-sm bg-[var(--navy-dark)] text-white"
+                : "mr-auto rounded-bl-sm border border-[var(--stroke)] bg-[var(--surface-sunken)] text-[var(--ink)]"
+            )}
           >
             {message.content}
           </div>
         ))}
+
         {isLoading ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--primary-blue)]">
-            Thinking...
-          </p>
+          <div className="mr-auto inline-flex items-center gap-1.5 rounded-2xl rounded-bl-sm border border-[var(--stroke)] bg-[var(--surface-sunken)] px-3 py-2">
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--primary-blue)] [animation-delay:-0.3s]" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--primary-blue)] [animation-delay:-0.15s]" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--primary-blue)]" />
+            <span className="ml-1 text-xs font-medium text-[var(--muted)]">Thinking</span>
+          </div>
         ) : null}
       </div>
 
       {error ? (
-        <p className="mx-4 mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700" role="alert">
+        <p
+          className="mx-4 mb-1 shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700"
+          role="alert"
+        >
           {error}
         </p>
       ) : null}
 
-      <form className="mt-3 border-t border-[var(--stroke)] bg-white px-4 pb-4 pt-3" onSubmit={handleSubmit}>
-        <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gray-text)]" htmlFor="chat-input">
+      <form className="shrink-0 border-t border-[var(--stroke)] p-3" onSubmit={handleSubmit}>
+        <label className="sr-only" htmlFor="chat-input">
           Message
         </label>
-        <div className="mt-2 flex items-end gap-2 rounded-2xl border border-[var(--stroke)] bg-[var(--surface)] p-2">
+        <div className="flex items-end gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--surface-sunken)] p-1.5 transition focus-within:border-[var(--primary-blue)] focus-within:bg-white">
           <textarea
             id="chat-input"
-            rows={3}
+            rows={2}
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="Tell AI what to update on the board"
-            className="min-h-[84px] flex-1 resize-none rounded-xl border border-transparent bg-white px-3 py-2 text-sm text-[var(--navy-dark)] outline-none focus:border-[var(--primary-blue)]"
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                void submit();
+              }
+            }}
+            placeholder="Ask the assistant"
+            className="min-h-[44px] flex-1 resize-none bg-transparent px-2 py-1.5 text-[0.8125rem] text-[var(--ink)] outline-none placeholder:text-[var(--muted)]"
           />
           <button
             type="submit"
             disabled={isLoading || input.trim().length === 0}
-            className="inline-flex h-10 items-center justify-center rounded-xl bg-[var(--secondary-purple)] px-4 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg bg-[var(--secondary-purple)] px-3 text-[0.8125rem] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
           >
-            {isLoading ? "Sending..." : "Send"}
+            {isLoading ? "Sending" : "Send"}
           </button>
         </div>
       </form>

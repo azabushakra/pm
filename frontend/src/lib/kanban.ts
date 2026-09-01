@@ -23,6 +23,22 @@ export const FIXED_COLUMN_IDS = [
   "col-done",
 ] as const;
 
+/**
+ * One accent colour per stage, unique and fixed by column id. Discovery and
+ * In Progress use the brand blue and purple so the board reads as part of the
+ * same system as the rest of the app.
+ */
+export const STAGE_COLOR: Record<string, string> = {
+  "col-backlog": "#e0910c",
+  "col-discovery": "#209dd7",
+  "col-progress": "#753991",
+  "col-review": "#dd5a70",
+  "col-done": "#10a37a",
+};
+
+export const stageColor = (columnId: string) =>
+  STAGE_COLOR[columnId] ?? "var(--primary-blue)";
+
 export const initialData: BoardData = {
   columns: [
     { id: "col-backlog", title: "Backlog", cardIds: ["card-1", "card-2"] },

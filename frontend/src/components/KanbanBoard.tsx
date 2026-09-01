@@ -9,6 +9,7 @@ import {
   useSensors,
   closestCorners,
   type DragEndEvent,
+  type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { AIChatSidebar, type ChatMessage } from "@/components/AIChatSidebar";
@@ -26,11 +27,13 @@ import {
 
 type KanbanBoardProps = {
   username: string;
+  onLogout?: () => void;
 };
 
-export const KanbanBoard = ({ username }: KanbanBoardProps) => {
+export const KanbanBoard = ({ username, onLogout }: KanbanBoardProps) => {
   const [board, setBoard] = useState<BoardData>(() => initialData);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  const [overColumnId, setOverColumnId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -95,13 +98,27 @@ export const KanbanBoard = ({ username }: KanbanBoardProps) => {
     });
   };
 
+  const columnIdFor = (id: string) =>
+    board.columns.find((column) => column.id === id || column.cardIds.includes(id))?.id ??
+    null;
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveCardId(event.active.id as string);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    setOverColumnId(event.over ? columnIdFor(event.over.id as string) : null);
+  };
+
+  const handleDragCancel = () => {
+    setActiveCardId(null);
+    setOverColumnId(null);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveCardId(null);
+    setOverColumnId(null);
 
     if (!over || active.id === over.id) {
       return;
@@ -191,101 +208,104 @@ export const KanbanBoard = ({ username }: KanbanBoardProps) => {
   };
 
   const activeCard = activeCardId ? cardsById[activeCardId] : null;
-  const stageChipClass: Record<string, string> = {
-    "col-backlog": "bg-amber-500",
-    "col-discovery": "bg-sky-500",
-    "col-progress": "bg-violet-500",
-    "col-review": "bg-rose-500",
-    "col-done": "bg-emerald-500",
-  };
+  const totalCards = Object.keys(board.cards).length;
+
+  const status = isLoading
+    ? { label: "Loading board", tone: "text-[var(--muted)]", dot: "bg-[var(--muted)]" }
+    : isSaving
+      ? { label: "Saving", tone: "text-[var(--primary-blue)]", dot: "bg-[var(--primary-blue)]" }
+      : { label: "All changes saved", tone: "text-[var(--muted)]", dot: "bg-[#10a37a]" };
 
   return (
-    <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute left-0 top-0 h-[420px] w-[420px] -translate-x-1/3 -translate-y-1/3 rounded-full bg-[radial-gradient(circle,_rgba(32,157,215,0.25)_0%,_rgba(32,157,215,0.05)_55%,_transparent_70%)]" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-[520px] w-[520px] translate-x-1/4 translate-y-1/4 rounded-full bg-[radial-gradient(circle,_rgba(117,57,145,0.18)_0%,_rgba(117,57,145,0.05)_55%,_transparent_75%)]" />
+    <div className="flex min-h-screen flex-col bg-[var(--surface)] xl:h-screen xl:overflow-hidden">
+      <header className="flex shrink-0 items-center gap-4 border-b border-[var(--stroke)] bg-white px-4 py-2.5 sm:px-6">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--navy-dark)]">
+            <span className="grid grid-cols-2 gap-[3px]">
+              <span className="h-1.5 w-1.5 rounded-[2px] bg-[var(--accent-yellow)]" />
+              <span className="h-1.5 w-1.5 rounded-[2px] bg-[var(--primary-blue)]" />
+              <span className="h-1.5 w-1.5 rounded-[2px] bg-[var(--primary-blue)]" />
+              <span className="h-1.5 w-1.5 rounded-[2px] bg-[#10a37a]" />
+            </span>
+          </span>
+          <h1 className="truncate font-display text-base font-semibold text-[var(--ink)]">
+            Kanban Studio
+          </h1>
+        </div>
 
-      <main className="relative mx-auto flex min-h-screen w-full max-w-[1900px] flex-col gap-8 px-4 pb-16 pt-10 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-6 rounded-[32px] border border-[var(--stroke)] bg-white/80 p-8 shadow-[var(--shadow)] backdrop-blur">
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--gray-text)]">
-                Single Board Kanban
-              </p>
-              <h1 className="mt-3 font-display text-4xl font-semibold text-[var(--navy-dark)]">
-                Kanban Studio
-              </h1>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--gray-text)]">
-                Keep momentum visible. Rename columns, drag cards between stages,
-                and capture quick notes without getting buried in settings.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--surface)] px-5 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--gray-text)]">
-                Focus
-              </p>
-              <p className="mt-2 text-lg font-semibold text-[var(--primary-blue)]">
-                One board. Five columns. Zero clutter.
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-4">
-            {board.columns.map((column) => (
-              <div
-                key={column.id}
-                className="flex items-center gap-2 rounded-full border border-[var(--stroke)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--navy-dark)]"
-              >
-                <span className={`h-2.5 w-2.5 rounded-full ${stageChipClass[column.id] ?? "bg-[var(--accent-yellow)]"}`} />
-                {column.title}
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--stroke)] bg-[var(--surface)] px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--gray-text)]">
-              {isLoading ? "Loading board" : isSaving ? "Saving" : "All changes saved"}
+        <span className="hidden text-[0.8125rem] text-[var(--muted)] sm:inline">
+          {totalCards} cards
+        </span>
+
+        <div className="ml-auto flex items-center gap-3">
+          {saveError ? (
+            <p className="hidden max-w-[280px] truncate text-xs font-medium text-red-700 sm:block">
+              {saveError}
             </p>
-            {saveError ? (
-              <p className="text-xs font-semibold text-red-700">{saveError}</p>
-            ) : null}
-          </div>
-        </header>
+          ) : null}
+          <p className={`flex items-center gap-1.5 text-xs font-medium ${status.tone}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
+            {status.label}
+          </p>
+          <span className="hidden h-5 w-px bg-[var(--stroke)] sm:block" />
+          <span className="hidden text-[0.8125rem] font-medium text-[var(--ink-soft)] sm:inline">
+            {username}
+          </span>
+          {onLogout ? (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="rounded-lg border border-[var(--stroke)] px-2.5 py-1 text-xs font-semibold text-[var(--ink-soft)] transition hover:border-[var(--stroke-strong)] hover:text-[var(--ink)]"
+            >
+              Log out
+            </button>
+          ) : null}
+        </div>
+      </header>
 
-        <section className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_380px]">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <section className="grid gap-5 xl:grid-cols-5">
+      <main className="flex min-h-0 flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 xl:grid xl:grid-cols-[minmax(0,1fr)_340px]">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
+          {/* Columns share the width when they fit and scroll sideways when
+              they do not, so they never squeeze down to an unreadable width. */}
+          <div className="scroll-slim min-h-0 overflow-x-auto max-xl:h-[70vh]">
+            <section className="grid h-full min-w-[1060px] grid-cols-5 gap-3">
               {board.columns.map((column) => (
                 <KanbanColumn
                   key={column.id}
                   column={column}
                   cards={column.cardIds.map((cardId) => board.cards[cardId])}
+                  isTarget={overColumnId === column.id}
                   onRename={handleRenameColumn}
                   onAddCard={handleAddCard}
                   onDeleteCard={handleDeleteCard}
                 />
               ))}
             </section>
-            <DragOverlay>
-              {activeCard ? (
-                <div className="w-[260px]">
-                  <KanbanCardPreview card={activeCard} />
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
-
-          <div className="2xl:sticky 2xl:top-6 2xl:self-start">
-            <AIChatSidebar
-              messages={chatMessages}
-              isLoading={isChatLoading}
-              error={chatError}
-              onSend={handleSendChat}
-            />
           </div>
-        </section>
+          <DragOverlay dropAnimation={null}>
+            {activeCard ? (
+              <div className="w-[260px]">
+                <KanbanCardPreview card={activeCard} />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+
+        <div className="flex min-h-0 flex-col max-xl:h-[460px]">
+          <AIChatSidebar
+            messages={chatMessages}
+            isLoading={isChatLoading}
+            error={chatError}
+            onSend={handleSendChat}
+          />
+        </div>
       </main>
     </div>
   );
