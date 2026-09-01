@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -48,7 +49,12 @@ def create_app(frontend_out_dir: Path | None = None, db_path: Path | None = None
         if frontend_out_dir is not None
         else Path(__file__).resolve().parents[2] / "frontend" / "out"
     )
-    default_db_path = Path(__file__).resolve().parents[1] / "data" / "pm.db"
+    env_db_path = os.getenv("PM_DB_PATH")
+    default_db_path = (
+        Path(env_db_path)
+        if env_db_path
+        else Path(__file__).resolve().parents[1] / "data" / "pm.db"
+    )
     store = BoardStore(db_path=db_path or default_db_path, default_board=DEFAULT_BOARD)
     chat_history_by_user: dict[str, list[ChatHistoryMessageModel]] = {}
 

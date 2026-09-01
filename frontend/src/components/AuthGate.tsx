@@ -1,32 +1,31 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState, useSyncExternalStore } from "react";
 import { KanbanBoard } from "@/components/KanbanBoard";
-
-const AUTH_KEY = "pm-authenticated";
-const DEMO_USERNAME = "user";
-const DEMO_PASSWORD = "password";
+import {
+  DEMO_USERNAME,
+  getAuthSnapshot,
+  getServerAuthSnapshot,
+  signIn,
+  signOut,
+  subscribeToAuth,
+} from "@/lib/auth";
 
 export const AuthGate = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const isAuthenticated = useSyncExternalStore(
+    subscribeToAuth,
+    getAuthSnapshot,
+    getServerAuthSnapshot
+  );
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const saved = sessionStorage.getItem(AUTH_KEY);
-    if (saved === "true") {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (username === DEMO_USERNAME && password === DEMO_PASSWORD) {
-      sessionStorage.setItem(AUTH_KEY, "true");
-      setIsAuthenticated(true);
+    if (signIn(username, password)) {
       setError(null);
       return;
     }
@@ -35,8 +34,7 @@ export const AuthGate = () => {
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem(AUTH_KEY);
-    setIsAuthenticated(false);
+    signOut();
     setUsername("");
     setPassword("");
     setShowPassword(false);

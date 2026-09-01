@@ -12,7 +12,7 @@ export default defineConfig({
   },
   webServer: {
     command:
-      "npm run build && cd ../backend && rm -f data/pm.db && python3 -m uv run uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8123",
+      "npm run build && cd ../backend && rm -f data/e2e.db && PM_DB_PATH=data/e2e.db python3 -m uv run uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8123",
     url: "http://127.0.0.1:8123",
     reuseExistingServer: false,
     timeout: 120_000,
